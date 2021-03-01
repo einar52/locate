@@ -620,6 +620,10 @@ int locate(int flags)
 	r = doMagnitude(x,n,list) ;
 	return n ;
 }
+void locatePGV()
+{
+}
+
 void locateOld()
 {
 	int list[200],i,j,n,nn,m ;
@@ -939,7 +943,8 @@ int main( int ac, char **av )
 		}
 	}
 	if(outFile) fprintf(outFile,"flags=%d\n",flags) ;
-	locate( flags ) ;
+	if ( groundVelocity ) locatePGV() ;
+	else locate( flags ) ;
 	getQuality() ;
 	printReport(flags & 1) ;
 /*	printData() ; */
