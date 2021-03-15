@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 #include "locate.h"
@@ -30,7 +31,7 @@ typedef struct {
 	double pgvP,f0P ;
 } StaEvent ;
 StaEvent *data ;
-
+	
 typedef struct {
 	short sta1,sta2,sta3, u ;
 	float x,y,t,l1Sum ;
@@ -38,7 +39,7 @@ typedef struct {
 StaTriplet minTri ;
 double magnitude ,sigmaMag,medianF0,medianF0P,locQ ;
 char locStatus ;
-
+	
 time_t uBaseTime ;
 int event,date,year,nSta,nLog ;
 int locMode  = 3 ;
@@ -47,10 +48,11 @@ Vec3 nPole, pCenter ;
 Mat33 projection, inverseProjection ;
 double *aMatrix, *bVector ;
 FILE *outFile ;
-
+char *badStations = "badStations" ;
+	
 Proj v32ProjX( Vec3 v )
 {	
-/* Azimuthal equidistant projection */
+	/* Azimuthal equidistant projection */
 	double r , azi ;
 	Proj res ;
 	azi = v3Vertex(nPole,pCenter,v) ;
@@ -90,19 +92,19 @@ Vec3 proj2V3( Proj pp )
 }
 void xy2LatLon( double x, double y, double *lat, double *lon)
 {
-        LatLon ll ;
-        Vec3 vv ;
-        Proj pp ;
-        pp.x = x ; pp.y = y ;
-        vv = proj2V3(pp) ;
-        ll = v32LatLon(vv) ;
-        *lon = ll.lon ; *lat = ll.lat ;
+	LatLon ll ;
+	Vec3 vv ;
+	Proj pp ;
+	pp.x = x ; pp.y = y ;
+	vv = proj2V3(pp) ;
+	ll = v32LatLon(vv) ;
+	*lon = ll.lon ; *lat = ll.lat ;
 }
-
+	
 double locateLinear( int *staList, int n, double *x )
 /*	compute location using a linear traveltime ( constant vel ) 
-	staList lists indecies into data, n is number of stations to use.
-	n  >= 4
+staList lists indecies into data, n is number of stations to use.
+n  >= 4
 */
 #define T0  0.63
 {
@@ -127,10 +129,10 @@ double locateLinear( int *staList, int n, double *x )
 		a[i+2*n]  = 2.0*(ti - tj) ;
 		b[i] = xj*xj - xi*xi + yj*yj - yi*yi + ti*ti - tj*tj ;
 	}
-/*	for( i = 0 ; i < n ; i++) 
+	/*	for( i = 0 ; i < n ; i++) 
 		fprintf(outFile,"%10g %10g %10g    %10g\n",a[i],a[i+n],a[i+2*n],b[i]) ; */
 	golubC(a,x,b,n,3) ;
-/*	fprintf(outFile,"x = [%10g %10g %10g]\n",x[0],x[1],x[2] ) ; */
+	/*	fprintf(outFile,"x = [%10g %10g %10g]\n",x[0],x[1],x[2] ) ; */
 	for( i = 0 ; i < n ; i++) {
 		si = data + staList[i] ;
 		xi = si-> x - x[0] ; yi = si->y - x[1] ; ti=si->fBTime ;
@@ -197,7 +199,7 @@ double testTeleseis( double *x )
 	}
 	sigma = sqrt(sum/(n-3) ) ;
 	fprintf(outFile," sigma = %6.3f   Vel =%8.3f\n",sigma,apparentV) ;
-	return sigma ;
+return sigma ;
 }
 void spatialCheck()
 {
@@ -316,10 +318,10 @@ void printX(char *text, double *x, int m )
 	fprintf(outFile,"%s [",text) ;
 	for( i = 0 ; i < m ; i++) fprintf(outFile,"%12.7f",x[i]) ;
 	fprintf(outFile,"]\n") ;
-}
-double locateNL( int *staList, int n0, int m, double *x) 
-{
-#define DELTA 0.01 
+	}
+	double locateNL( int *staList, int n0, int m, double *x) 
+	{
+	#define DELTA 0.01 
 	double *a,*b ;
 	double xd[4] ;
 	double xi,xj,yi,yj,ti,t0,tj ;
@@ -391,9 +393,9 @@ void checkLoc( int *staList, int n, int m, double *x, double deltaT)
 	v = proj2V3(loc) ;
 	v3Print(outFile,v,"location ") ;
 	fprintf(outFile,"n =%2d sd =%8.2f\n",n,sqrt(sum/(n-3))) ;
-}
-int makeStaList(int *list) 
-{
+	}
+	int makeStaList(int *list) 
+	{
 	int i,n ;
 	n = 0 ;
 	for( i = 0 ; i < nSta ; i++) {
@@ -401,7 +403,7 @@ int makeStaList(int *list)
 			list[n++] = i ;
 		}
 	}
-	return n ;
+return n ;
 }
 int compMagI( const void *p1, const void *p2 ) 
 {
@@ -410,8 +412,8 @@ int compMagI( const void *p1, const void *p2 )
 	s1 = data + *(int *)p1 ; 
 	s2 = data + *(int *)p2 ;
 	d = s2->mag - s1->mag ;
-        if( d < 0.0 ) return 1 ;
-        if( d > 0.0 ) return -1 ;
+	if( d < 0.0 ) return 1 ;
+	if( d > 0.0 ) return -1 ;
 }
 double magWeight( double mag, double r )
 {
@@ -422,11 +424,11 @@ double magWeight( double mag, double r )
 	den = x + 0.4  ;
 	w = 16.0*x/(den*den) ;
 	w = w / ( 1.0 + 0.01*r ) ;
-/*	if( r > 150.0 ) w = 0 ; */
+	/*	if( r > 150.0 ) w = 0 ; */
 	return w ;
-}
-double doMagnitude(double *x, int n , int *list)
-{
+	}
+	double doMagnitude(double *x, int n , int *list)
+	{
 	int *index ; 
 	int i,j ;
 	StaEvent *si ;
@@ -450,11 +452,11 @@ double doMagnitude(double *x, int n , int *list)
 	   qsort(index,nSta,sizeof(int),compMagI) ;
 	   sw = sumw *0.5 ;
 	   i = 0 ;
-           while( sw > 0.0 ) sw -= data[index[i++]].wmag  ;
+	   while( sw > 0.0 ) sw -= data[index[i++]].wmag  ;
 	   magnitude  = data[index[i]].mag ;
 	   if(outFile) fprintf(outFile,"mag = %8.2f\n",magnitude) ;
 	}
-/*	for( i = 0 ; i < nSta ; i++) { fprintf(outFile, " %7.2f",data[index[i]].mag ) ; } */
+	/*	for( i = 0 ; i < nSta ; i++) { fprintf(outFile, " %7.2f",data[index[i]].mag ) ; } */
 	
 	free( index ) ;
 }
@@ -466,14 +468,14 @@ void setInitX( double *x, int m, int *list )
 	sj = data+list[2] ;
 	x[0] = 0.5*( si->x + sj->x ) ;
 	x[1] = 0.5*( si->y + sj->y ) ;
-}
-double distd(double x, double y, double r)
-{
+	}
+	double distd(double x, double y, double r)
+	{
 	return sqrt(x*x + y*y) - sqrt(r*r) ;  
 	return x*x + y*y - r*r ; 
-}
-int solveQuad(double dx, double dy, double x, double y, double r, double *r1, double *r2)
-{	/* solve quadradic equation for location based on 3 stations - 2 solutions */
+	}
+	int solveQuad(double dx, double dy, double x, double y, double r, double *r1, double *r2)
+	{	/* solve quadradic equation for location based on 3 stations - 2 solutions */
 	double a,b,c,ba,d,dd ;
 	a = 1.0 - dx*dx - dy*dy  ; 
 	b = r + dx*x + dy*y  ;
@@ -537,9 +539,9 @@ int locate3(int i1, int i2, int i3, double *xv1, double *xv2 )
 		d3 = distd(x3-x,y3-y,r3-r) ;
 		fprintf(outFile,"%3d %6.2f %6.2f %6.2f %8.2f %8.2f %8.2f\n",i,x,y,r,d1,d2,d3) ;
 	}
-}
-double distSta( int i, double x, double y )
-{
+	}
+	double distSta( int i, double x, double y )
+	{
 	double xx,yy,d ;
 	xx = data[i].x -x ;
 	yy = data[i].y -y ;
@@ -619,11 +621,93 @@ int locate(int flags)
 	checkLoc(list,n,3,x,200.0) ;
 	r = doMagnitude(x,n,list) ;
 	return n ;
+	}
+	int compMag(const void *p1, const void *p2)
+	{
+	StaEvent *s1,*s2 ;
+	double d ;
+	s1 = data + *(int*)p1 ;
+	s2 = data + *(int*)p2 ;
+	d= s1->mag - s2->mag ;
+	if(d < 0.0 ) return 1 ;
+	if(d > 0.0 ) return -1 ;
+	return 0 ;
+}
+int compPGV(const void *p1, const void *p2)
+{
+	StaEvent *s1,*s2 ;
+	double d ;
+	s1 = data + *(int*)p1 ;
+	s2 = data + *(int*)p2 ;
+	d= s1->pgv - s2->pgv ;
+	if(d < 0.0 ) return 1 ;
+	if(d > 0.0 ) return -1 ;
+	return 0 ;
+}
+int removeBadStations(int *list,int n)
+{
+	FILE *badf ;
+	int i ;
+	char staName[20]  ;
+	StaEvent *s1 ;
+	badf = fopen(badStations,"r") ;
+	if( NULL == badf ) return n ;
+	while( 1 == fscanf(badf,"%s ",staName )) {
+		for( i = 0 ; i < n ; i++ ) {
+			s1 = data+list[i] ;
+			if( 0 == strcmp( s1->name, staName )) {
+				list[i] = list[n-1] ;
+				n-- ;
+				if( outFile ) fprintf(outFile,"delete %s\n",staName ) ;
+			}
+		}
+	}
+	fclose(badf) ;
+	return n ;
 }
 void locatePGV()
 {
+	int list[200],n,i ;
+	StaEvent *s1,*s2,*s3 ;
+	double x0,y0,r,dx,dy,g1,g2,g3 ;
+	double magnitude ;
+	n = makeStaList(list) ;
+	n = removeBadStations(list,n) ;
+	if(outFile) fprintf(outFile,"locatePGV: n=%d\n",n) ;
+	if( n < 4 ) return  ;
+	qsort(list,n,sizeof(int),compPGV) ;
+	s1 = data+list[0]  ;
+	s2 = data+list[1]  ;
+	s3 = data+list[3]  ;
+	g1 = s1->pgv ;
+	g2 = s2->pgv ;
+	g3 = s3->pgv ;
+	x0 = ( g1*s1->x + g2*s2->x + g3*s3->x)/(g1+g2+g3) ;
+	y0 = ( g1*s1->y + g2*s2->y + g3*s3->y)/(g1+g2+g3) ;
+	if(outFile) fprintf(outFile,"x0=%8.2f y0=%8.2f\n",x0,y0) ;
+	for( i = 0 ; i < n ; i++ ) {
+		s1 = data+list[i] ;
+		dx = s1->x - x0 ;
+		dy = s1->y - y0 ;
+		r = sqrt(dx*dx + dy*dy) ;
+		s1->trav=r ;
+		s1->mag = log10(s1->pgv) - 1.12 + 1.63*log10(r) ;
+		if(outFile) fprintf(outFile, 
+			"%3d %s %10.5f %10.5f %10.5f %10.5f %7.2f\n",
+			i,s1->name,s1->pgv,s1->x,s1->y,r,s1->mag ) ;
+	}
+	qsort(list,n,sizeof(int),compMag) ;
+	for ( i = 0 ; i < n ; i++ ) {
+		s1 = data+list[i] ;
+		if(outFile) fprintf(outFile, 
+			"%3d %s %10.5f %10.5f %10.5f %10.5f %7.2f\n",
+			i,s1->name,s1->pgv,s1->x,s1->y,s1->trav,s1->mag ) ;
+	}
+	s1 = data + list[(n-1)/2] ;
+	s2 = data + list[(n  )/2] ;
+	magnitude = 0.5*( s1->mag + s2->mag ) ;
+	printf("%03d %d %s %2d %s M=%4.2f\n",event,date,month,year,timeHMS,magnitude );
 }
-
 void locateOld()
 {
 	int list[200],i,j,n,nn,m ;
@@ -636,7 +720,7 @@ void locateOld()
 	testTeleseis(x) ;
 	n = makeStaList(list) ;
 	if( n < 4 ) return ;
-/*	zl = locateLinear(list,n,x) ;  */
+	/*	zl = locateLinear(list,n,x) ;  */
 	if ( locMode == 0 ) setInitX(x,m,list) ;
 	if ( locMode == 3 ) { 
 		locateInit3(list,n,x) ;
@@ -664,9 +748,9 @@ void locateOld()
 		j++ ;
 	}
 	r = doMagnitude(x,n,list) ;
-}
-void initProjection( Vec3 center )
-{
+	}
+	void initProjection( Vec3 center )
+	{
 	nPole.z = 1.0 ;
 	makeRotation(&projection,center,nPole,ERadius) ;
 	transposeMat33(&inverseProjection,&projection,
@@ -691,7 +775,7 @@ void fixCenter()
 	for( i = 0 ; i < nSta ; i++) {
 		p = &(data[i].pos) ;
 		pp =  v32Proj( *p ) ;
-/*		v3Print(outFile,*p," *p ") ;
+	/*		v3Print(outFile,*p," *p ") ;
 	fprintf(outFile,"%s %8.2f %8.2f \n",data[i].name, pp.x,pp.y) ; */
 		data[i].x = pp.x ;
 		data[i].y = pp.y ;
@@ -699,12 +783,12 @@ void fixCenter()
 	}
 	if(outFile) fprintf(outFile,"sx,sy = %8g, %8g\n",sx/nSta, sy/nSta ) ;
 }
-
-
+	
+	
 int a2month( char *name) 
 {                   /* hash routine to convert month name to number */
 	static int val[] = 
-{0,0,0,3,0,0,4,11,0,10,0,9,0,12,0,0,6,0,0,0,0,0,0,0,0,5,1,0,0,7,8,0,0,0,0,0,0,0,0,0,0,0,0,0,2 } ;
+	{0,0,0,3,0,0,4,11,0,10,0,9,0,12,0,0,6,0,0,0,0,0,0,0,0,5,1,0,0,7,8,0,0,0,0,0,0,0,0,0,0,0,0,0,2 } ;
 	int *ip ;
 	ip = ( int *) name ;
 	return val[*ip % 45] ;
@@ -719,17 +803,21 @@ void setTime()
 	t.tm_mon =  a2month(month)-1 ;
 	t.tm_year = year - 1900 ;
 	uBaseTime = mktime(&t) ;
-/*printf(" %d %d %d %d %d %d %s\n",t.tm_year,t.tm_mon,t.tm_mday,t.tm_hour,t.tm_min,uBaseTime,ctime(&uBaseTime)) ; */
-}
-void readEvent( char *file )
-{
+	/*printf(" %d %d %d %d %d %d %s\n",t.tm_year,t.tm_mon,t.tm_mday,t.tm_hour,t.tm_min,uBaseTime,ctime(&uBaseTime)) ; */
+	}
+	void readEvent( char *file, int pipe )
+	{
 	char b1[200],b2[20],b3[20],b4[20],b5[20],b6[20],b7[20],b8[20],b9[20] ;
 	int j1,j2,j3,j4,j5 ;
 	int ns,i ;
 	FILE *fd ;
 	double lat,lon ;
 	StaEvent  *s ;
-	fd = fopen(file,"r") ;
+	if( pipe ) { 
+		sprintf(b1,"wget -q -O - http://hraun.vedur.is/ja/alert/%s.event",file) ;
+		if(outFile) fprintf(outFile,"%s\n",b1) ;
+		fd = popen(b1,"r") ;
+	} else fd = fopen(file,"r") ;
 	if(outFile) fprintf(outFile," read %s fd=%x\n",file,fd) ;
 	ns = fscanf(fd,"%d %d %d %d %s %s",&event,&j1,&j2,&j3,b1,month ) ;
 	ns = fscanf(fd,"%d %s %d %d %d ",&date,timeHMS,&year,&nLog,&nSta ) ;
@@ -748,10 +836,11 @@ void readEvent( char *file )
 		} else { s->f0P = 0.0 ; s->pgvP = 0.0 ; }
 		
 	}
+	if( pipe ) pclose(fd) ; else fclose(fd) ;
 	setTime() ;
 	fixCenter() ;
-	aMatrix = (double *) calloc(8*nSta,sizeof(aMatrix)) ;
-	bVector = (double *) calloc(2*nSta,sizeof(bVector)) ;
+	aMatrix = (double *) calloc(8*nSta,sizeof(double)) ;
+	bVector = (double *) calloc(2*nSta,sizeof(double)) ;
 }
 void printData()
 {
@@ -810,11 +899,11 @@ void getQuality()
 		qsort(fPArr,np,sizeof(double),compDouble) ;
 		medianF0P = 0.5* (fPArr[np/2] + fPArr[(np-1)/2]) ;
 	}
-/*
+	/*
 	locQ = (1.0-1.0/(n3-1.5))*(1.0-1.0/(n1-1.5))*(1.0-1.0/(n10-1.4)) ;
 	locQ /=  0.7 + 2.0*sigmaMag ;
 	locQ = 10.0*sqrt(locQ) ;
-*/
+	*/
 	locStatus = 'C' ;
 	if( n1> 4 ) locStatus = 'B' ;
 	if(( n3 > 5 ) && (n3 > nSta/5)) locStatus = 'B' ;
@@ -845,10 +934,10 @@ void printReport(int list)
 	ss = ss % 10 ;
 	fTest = 2.0*log10(medianF0)+magnitude ;
 	if( minTri.u <= 2 )  return ;
-  	printf("_%03d %s.%1d %7.3f %8.3f 4.000 %4.2f ",event,timeStr,ss,lat,lon,magnitude) ;
+	printf("_%03d %s.%1d %7.3f %8.3f 4.000 %4.2f ",event,timeStr,ss,lat,lon,magnitude) ;
 	printf("%c %03.0f %5.2f %5.2f %4.1f",locStatus,100.0*locQ,sigmaMag,medianF0,fTest ) ;
 	printf(" %2d %5.2f %3d %2d\n",nSta,medianF0P,minTri.u,minTri.sta3) ;
-/*		ada      1.4  160.9  2.63   0 -12.30  24.94 -37.24 */
+	/*		ada      1.4  160.9  2.63   0 -12.30  24.94 -37.24 */
 	if( list == 0 ) return ;
 	printf("\n         pgv   dist   mag   f0   st fBreak     t     dt\n") ;
 	for( i = 0 ; i < nSta ; i++) {
@@ -930,9 +1019,10 @@ int main( int ac, char **av )
 	int cc ;
 	extern char *optarg ;
 	static int flags = 3, groundVelocity ;
-	while( EOF != (cc = getopt(ac,av,"i:m:l:3vLg"))) {
+	while( EOF != (cc = getopt(ac,av,"i:m:l:3vLgp:"))) {
 		switch(cc) {
-			case 'i' : readEvent(optarg) ; break ;
+			case 'i' : readEvent(optarg,0) ; break ;
+			case 'p' : readEvent(optarg,1) ; break ;
 			case 'l' : outFile = fopen(optarg,"w") ; break ;
 			case '3' : test3() ; break ;
 			case 'm' : locMode = atoi(optarg) ; break ;
@@ -943,11 +1033,12 @@ int main( int ac, char **av )
 		}
 	}
 	if(outFile) fprintf(outFile,"flags=%d\n",flags) ;
-	if ( groundVelocity ) locatePGV() ;
-	else locate( flags ) ;
-	getQuality() ;
-	printReport(flags & 1) ;
-/*	printData() ; */
+	if ( groundVelocity ) {locatePGV() ; }
+	else {locate( flags ) ;
+		getQuality() ;
+		printReport(flags & 1) ;
+	}
+	/*	printData() ; */
 	testt() ;
 	return 0 ;
 }
